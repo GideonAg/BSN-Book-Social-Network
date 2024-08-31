@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Activation</title>
+    <style>
+        .activate {
+            background-color: blue;
+            padding: 5px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1>Account Activation</h1>
+    <p class="" th:text="'Hello ' + ${username} + ','"></p>
+    <p>Kindly use the activation code to activate your account.</p>
+    <div><span th:text="${activation_code}"></span></div>
+    <div>
+        <a class="activate" th:href="${confirmation_url}" target="_blank">Activate your account</a>
+    </div>
+</div>
+</body>
+</html>

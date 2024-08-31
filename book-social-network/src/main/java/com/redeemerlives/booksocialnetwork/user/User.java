@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -91,7 +90,7 @@ public class User implements UserDetails, Principal {
         return enabled;
     }
 
-    private String getFullName() {
+    public String getFullName() {
         return firstname + " " + lastname;
     }
 }

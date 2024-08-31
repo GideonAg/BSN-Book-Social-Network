@@ -9,20 +9,25 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: fileserverapplication@gmail.com
-    password: llkfamepyeexragd
+    username: ${EMAIL}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
           starttls:
             enable=true
           auth: true
-          timeout: 3000
-          connectiontimeout: 5000
-          writetimeout: 5000
+#          timeout: 3000
+#          connectiontimeout: 5000
+#          writetimeout: 5000
 
 application:
   security:
     jwt:
-      secret-key: asdlfndsfF293RSADFOHNWALSFDHASBDFLKASODPFB2WEPFSD9823LSDHFBPQWEFHBWEFSDOFBAS;DFSDLO
-      expiration: 86400000
+      secret-key: ${SECRET_KEY}
+      expiration: ${JWT_EXPIRATION}
+  mailing:
+    frontend:
+      activation-url: http://localhost:4200/activate-account
+server:
+  port: 8088
