@@ -1,5 +1,6 @@
 package com.redeemerlives.booksocialnetwork.feedback;
 
+import com.redeemerlives.booksocialnetwork.book.Book;
 import com.redeemerlives.booksocialnetwork.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,9 @@ public class Feedback extends BaseEntity {
 
     private Float note;
     private String comment;
+
+    @ManyToOne
+    @JoinColumn(name = "book_id")
+    private Book book;
 
 }
