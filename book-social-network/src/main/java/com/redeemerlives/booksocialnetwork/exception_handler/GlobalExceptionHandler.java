@@ -1,5 +1,6 @@
 package com.redeemerlives.booksocialnetwork.exception_handler;
 
+import com.redeemerlives.booksocialnetwork.exception.OperationNotPermittedException;
 import jakarta.mail.MessagingException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -99,6 +100,16 @@ public class GlobalExceptionHandler {
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorDescription("Email is already registered")
+                                .error(exception.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(OperationNotPermittedException.class)
+    public ResponseEntity<ExceptionResponse> handleException(OperationNotPermittedException exception) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
                                 .error(exception.getMessage())
                                 .build()
                 );

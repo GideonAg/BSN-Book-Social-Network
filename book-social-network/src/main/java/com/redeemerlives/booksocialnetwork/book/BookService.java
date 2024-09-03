@@ -1,6 +1,7 @@
 package com.redeemerlives.booksocialnetwork.book;
 
 import com.redeemerlives.booksocialnetwork.common.PageResponse;
+import com.redeemerlives.booksocialnetwork.exception.OperationNotPermittedException;
 import com.redeemerlives.booksocialnetwork.history.BookTransactionHistory;
 import com.redeemerlives.booksocialnetwork.history.BookTransactionHistoryRepository;
 import com.redeemerlives.booksocialnetwork.user.User;
@@ -14,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +77,7 @@ public class BookService {
     }
 
     public PageResponse<BorrowedBooksResponse> findAllBorrowedBooks(int page, int size, Authentication connectedUser) {
-        User user = (User) connectedUser;
+        User user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<BookTransactionHistory> allBorrowedBooks =
                 bookTransactionHistoryRepository.findAllBorrowedBooks(pageable, user.getId());
@@ -91,5 +93,71 @@ public class BookService {
                 allBorrowedBooks.isFirst(),
                 allBorrowedBooks.isLast()
         );
+    }
+
+    public PageResponse<BorrowedBooksResponse> findAllReturnedBooks(int page, int size, Authentication connectedUser) {
+        User user = (User) connectedUser.getPrincipal();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Page<BookTransactionHistory> allBorrowedBooks =
+                bookTransactionHistoryRepository.findAllReturnedBooks(pageable, user.getId());
+        List<BorrowedBooksResponse> booksResponse =
+                allBorrowedBooks.stream().map(bookMapper::toBorrowedBooksResponse).toList();
+
+        return new PageResponse<>(
+                booksResponse,
+                allBorrowedBooks.getNumber(),
+                allBorrowedBooks.getSize(),
+                allBorrowedBooks.getTotalElements(),
+                allBorrowedBooks.getTotalPages(),
+                allBorrowedBooks.isFirst(),
+                allBorrowedBooks.isLast()
+        );
+    }
+
+    public Integer updateShareableStatus(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID::" + bookId));
+        User user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId()))
+            throw new OperationNotPermittedException("You cannot update the book's shareable status");
+
+        book.setShareable(!book.isShareable());
+        bookRepository.save(book);
+        return bookId;
+    }
+
+    public Integer updateArchivedStatus(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID:: " + bookId));
+        User user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId()))
+            throw new OperationNotPermittedException("You cannot update the book's archived status");
+
+        book.setArchived(!book.isArchived());
+        bookRepository.save(book);
+        return bookId;
+    }
+
+    public Integer borrowBook(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID:: " + bookId));
+        if (book.isArchived() || !book.isShareable())
+            throw new OperationNotPermittedException("This book is currently not available for borrowing");
+
+        User user = (User) connectedUser.getPrincipal();
+        if (Objects.equals(user.getId(), book.getOwner().getId()))
+            throw new OperationNotPermittedException("You cannot borrow your own book");
+
+        final boolean isBorrowed = bookTransactionHistoryRepository.isAlreadyBorrowed(bookId, user.getId());
+        if (isBorrowed)
+            throw new OperationNotPermittedException("This book has already been borrowed");
+
+        BookTransactionHistory history = BookTransactionHistory.builder()
+                .book(book)
+                .user(user)
+                .returned(false)
+                .returnApproved(false)
+                .build();
+        return bookTransactionHistoryRepository.save(history).getId();
     }
 }
