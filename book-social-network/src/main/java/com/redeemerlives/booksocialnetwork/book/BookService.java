@@ -160,4 +160,32 @@ public class BookService {
                 .build();
         return bookTransactionHistoryRepository.save(history).getId();
     }
+
+    public Integer returnBorrowedBook(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID:: " + bookId));
+
+        User user = (User) connectedUser.getPrincipal();
+        if (Objects.equals(user.getId(), book.getOwner().getId()))
+            throw new OperationNotPermittedException("You cannot return your own book");
+
+        BookTransactionHistory history = bookTransactionHistoryRepository.findBorrowedBook(bookId, user.getId())
+                .orElseThrow(() -> new OperationNotPermittedException("You cannot return a book you did not borrow"));
+        history.setReturned(true);
+        return bookTransactionHistoryRepository.save(history).getId();
+    }
+
+    public Integer approveReturnedBorrowedBook(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID:: " + bookId));
+
+        User user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(user.getId(), book.getOwner().getId()))
+            throw new OperationNotPermittedException("You cannot approve return of this book");
+
+        BookTransactionHistory history = bookTransactionHistoryRepository.findBooksToApprove(bookId, user.getId())
+                .orElseThrow(() -> new OperationNotPermittedException("The book is not returned yet. You cannot approve return of this book"));
+        history.setReturnApproved(true);
+        return bookTransactionHistoryRepository.save(history).getId();
+    }
 }
