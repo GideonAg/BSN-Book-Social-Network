@@ -2,6 +2,7 @@ package com.redeemerlives.booksocialnetwork.book;
 
 import com.redeemerlives.booksocialnetwork.common.PageResponse;
 import com.redeemerlives.booksocialnetwork.exception.OperationNotPermittedException;
+import com.redeemerlives.booksocialnetwork.file.FileStorageService;
 import com.redeemerlives.booksocialnetwork.history.BookTransactionHistory;
 import com.redeemerlives.booksocialnetwork.history.BookTransactionHistoryRepository;
 import com.redeemerlives.booksocialnetwork.user.User;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +26,7 @@ public class BookService {
     private final BookMapper bookMapper;
     private final BookRepository bookRepository;
     private final BookTransactionHistoryRepository bookTransactionHistoryRepository;
+    private final FileStorageService fileStorageService;
 
     public Integer saveBook(BookRequest request, Authentication connectedUser) {
         User user = (User) connectedUser.getPrincipal();
@@ -187,5 +190,14 @@ public class BookService {
                 .orElseThrow(() -> new OperationNotPermittedException("The book is not returned yet. You cannot approve return of this book"));
         history.setReturnApproved(true);
         return bookTransactionHistoryRepository.save(history).getId();
+    }
+
+    public void uploadBookCoverPicture(MultipartFile file, Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID:: " + bookId));
+        User user = (User) connectedUser.getPrincipal();
+        String bookCover = fileStorageService.saveFile(file, user.getId());
+        book.setBookCover(bookCover);
+        bookRepository.save(book);
     }
 }
