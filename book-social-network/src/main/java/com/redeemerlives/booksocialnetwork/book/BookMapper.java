@@ -1,5 +1,6 @@
 package com.redeemerlives.booksocialnetwork.book;
 
+import com.redeemerlives.booksocialnetwork.file.FileUtils;
 import com.redeemerlives.booksocialnetwork.history.BookTransactionHistory;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +29,7 @@ public class BookMapper {
                 .owner(book.getOwner().getFullName())
                 .synopsis(book.getSynopsis())
                 .rate(book.getRating())
-                // todo implement this later
-                // .cover()
+                .cover(FileUtils.readFileFromLocation(book.getBookCover()))
                 .build();
     }
 
