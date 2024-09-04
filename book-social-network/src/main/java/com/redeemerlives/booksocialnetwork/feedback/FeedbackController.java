@@ -1,6 +1,7 @@
 package com.redeemerlives.booksocialnetwork.feedback;
 
 import com.redeemerlives.booksocialnetwork.common.PageResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("feedback")
 @RequiredArgsConstructor
+@Tag(name = "Feedback")
 public class FeedbackController {
 
     private final FeedbackService feedbackService;
