@@ -151,7 +151,7 @@ public class BookService {
         if (Objects.equals(user.getId(), book.getOwner().getId()))
             throw new OperationNotPermittedException("You cannot borrow your own book");
 
-        final boolean isBorrowed = bookTransactionHistoryRepository.isAlreadyBorrowed(bookId, user.getId());
+        final boolean isBorrowed = bookTransactionHistoryRepository.isAlreadyBorrowed(bookId);
         if (isBorrowed)
             throw new OperationNotPermittedException("This book has already been borrowed");
 
